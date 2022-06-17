@@ -58,8 +58,22 @@ def readLeftFiles():
 
     return count + 1, uniqIpCounter, ipListForMax
 
+def findIpFromLeft(list):
+    with open("intersec/left.txt") as file:
+        leftList = file
+        ipPool = []
+        for count, line in enumerate(leftList):
+            
+            split1 = line.split(" ")
+            timeObj = split1[1].replace("[", "").replace("]", "")
+            if (timeObj in list):
+                ipPool.append(line)
+        uniqIp = uniqueList(ipPool)[1]
+        print(uniqIp)
+
 def readRightFiles():
     webServerList = []
+    timeOfAccess = []
 
     with open("intersec/right.txt", 'r') as file:
         rightList = file
@@ -68,8 +82,37 @@ def readRightFiles():
             split2 = split1.split('"')[0]
             webServerList.append(split2)
             
+            time = line.split(" ")[0].replace("[", "").replace("]", "")
+            currentDate = datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%S%z')
+            onlyHour = int(currentDate.strftime("%H"))
+            onlyMin = int(currentDate.strftime("%M"))
+            onlySec = int(currentDate.strftime("%S"))
+
+            if (split2 == "www.tv-movie.de"):
+                if (onlyHour == 21 and onlyMin == 59 and onlySec >= 0):
+                    for i in range(1, 6):
+                        if (i == 1):    
+                            timeOfAccess.append(time)
+                        chng = time.replace(str(onlySec), str(onlySec - i))
+                        timeOfAccess.append(chng)
+                elif (onlyHour == 22 and onlyMin == 1):
+                    for i in range(1, 6):
+                        if (i == 1):    
+                            timeOfAccess.append(time)
+                        chng = time.replace(str(onlySec), str(onlySec - i))
+                        timeOfAccess.append(chng)
+                elif (onlyHour == 22 and onlyMin == 0 and onlySec <= 59):
+                    for i in range(1, 6):
+                        if (i == 1):    
+                            timeOfAccess.append(time)
+                        chng = time.replace(str(onlySec), str(onlySec - i))
+                        timeOfAccess.append(chng)
+        findIpFromLeft(timeOfAccess)
+            
+
+            
         totalWebServers = uniqueList(webServerList)[0]
-    
+        # print(timeOfAccess)
         mostVisitedServer = mostFreq(webServerList, totalWebServers)
 
 
@@ -79,24 +122,24 @@ def readRightFiles():
 def main():
     
     # number of entries in left.txt & right.txt
-    result_left = readLeftFiles()[0]
-    result_right = readRightFiles()[0]
+    result_left = readLeftFiles()
+    result_right = readRightFiles()
     
-    print("Result left: ", result_left)
-    print("Result right: ", result_right)
+    print("Result left: ", result_left[0])
+    print("Result right: ", result_right[0])
 
-    uniqIpCount = readLeftFiles()[1]
+    uniqIpCount = result_left[1]
     print("Number of unique users: ", uniqIpCount)
 
-    noOfServes = readRightFiles()[1]
+    noOfServes = result_right[1]
     print("Number of accessed webservers: ", noOfServes)
     
-    mostFreqServer = readRightFiles()[2]
+    mostFreqServer = result_right[2]
     print("Most visited webserver: ", mostFreqServer)
     
 
-    totalCandidateIP = readLeftFiles()[2][0]
-    candidateList = readLeftFiles()[2][1]
+    totalCandidateIP = result_left[2][0]
+    candidateList = result_left[2][1]
     print("Total candidate IP: ", totalCandidateIP)
     print("Candidate IP List: ", candidateList)
     
